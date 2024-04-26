@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"
+      integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+      crossorigin="anonymous"
+    />
+    <title>Item Lister</title>
+    <style>
+      .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="main-header" class="bg-success text-white p-4 mb-3">
+      <div class="container">
+        <h1 id="header-title">
+          Item Lister <span style="display: none">123</span>
+        </h1>
+      </div>
+    </header>
+    <div class="container">
+      <div id="main" class="card card-body">
+        <h2 class="title">Add Items</h2>
+        <form class="form-inline mb-3">
+          <input type="text" class="form-control mr-2" id="value" />
+          <select class="form-control mr-2" id="index">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <!-- Add more options as needed -->
+          </select>
+          <button type="button" id="edit" class="btn btn-primary">Edit</button>
+          <button type="button" id="remove" class="btn btn-danger ml-2">
+            Delete
+          </button>
+        </form>
+        <h2 class="title">Items</h2>
+        <ul id="items" class="list-group">
+          <li class="list-group-item">Item 1</li>
+          <li class="list-group-item">Item 2</li>
+          <li class="list-group-item">Item 3</li>
+          <li class="list-group-item">Item 4</li>
+          <!-- Add more list items dynamically -->
+        </ul>
+        <div id="output"></div>
+        <br />
+        <button class="btn btn-dark btn-block" id="button">Click Here</button>
+        <br />
+      </div>
+    </div>
+
+    <!-- Modal for editing -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <input type="text" class="form-control" id="editValue" />
+        <button type="button" id="saveEdit" class="btn btn-primary mt-2">
+          Save
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Get elements by id
+      const valueInput = document.getElementById("value");
+      const indexSelect = document.getElementById("index");
+      const removeButton = document.getElementById("remove");
+      const editButton = document.getElementById("edit");
+      const button = document.getElementById("button");
+      const editModal = document.getElementById("editModal");
+      const editValueInput = document.getElementById("editValue");
+      const saveEditButton = document.getElementById("saveEdit");
+
+      // Function to blur the content behind the modal
+      function toggleBlur() {
+        document.body.classList.toggle("modal-open");
+        const backdrop = document.querySelector(".modal-backdrop");
+        if (backdrop) {
+          backdrop.remove();
+        } else {
+          const newBackdrop = document.createElement("div");
+          newBackdrop.classList.add("modal-backdrop", "show");
+          document.body.appendChild(newBackdrop);
+        }
+      }
+
+      // Script for adding content to the ul list at a specific index when the user presses "Click Here"
+      button.addEventListener("click", function () {
+        let value = valueInput.value;
+        let index = indexSelect.value;
+        let ul = document.getElementById("items");
+        let li = document.createElement("li");
+        li.className = "list-group-item"; // Add class
+        li.appendChild(document.createTextNode(value));
+        let editButton = document.createElement("button");
+        editButton.className = "btn btn-primary btn-sm ml-2 edit-btn"; // Add class
+        editButton.textContent = "Edit";
+        editButton.addEventListener("click", function () {
+          let newValue = prompt("Enter new value:");
+          if (newValue !== null) {
+            li.firstChild.nodeValue = newValue;
+          }
+        });
+        li.appendChild(editButton);
+        let deleteButton = document.createElement("button");
+        deleteButton.className = "btn btn-danger btn-sm ml-2 delete-btn"; // Add class
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", function () {
+          const confirmDelete = confirm("Are you sure you want to delete?");
+          if (confirmDelete) {
+            ul.removeChild(li);
+          }
+        });
+        li.appendChild(deleteButton);
+
+        let targetIndex = parseInt(index, 10);
+        if (targetIndex === 0) {
+          ul.prepend(li);
+        } else {
+          let existingLi = ul.querySelectorAll("li")[targetIndex - 1];
+          if (existingLi) {
+            ul.insertBefore(li, existingLi);
+          } else {
+            ul.appendChild(li);
+          }
+        }
+      });
+
+      // Script for editing a specific element in a new window
+      editButton.addEventListener("click", function () {
+        const index = indexSelect.value;
+        const ul = document.getElementById("items");
+        const liToEdit = ul.querySelectorAll("li")[index - 1]; // Adjust index for zero-based indexing
+        if (liToEdit) {
+          const currentValue = liToEdit.textContent.trim();
+          editValueInput.value = currentValue;
+          editModal.style.display = "block";
+          toggleBlur();
+        }
+      });
+
+      // Script for saving edits and closing the modal
+      saveEditButton.addEventListener("click", function () {
+        const index = indexSelect.value;
+        const ul = document.getElementById("items");
+        const liToEdit = ul.querySelectorAll("li")[index - 1]; // Adjust index for zero-based indexing
+        if (liToEdit) {
+          const newValue = editValueInput.value.trim();
+          liToEdit.textContent = newValue;
+          editModal.style.display = "none";
+          toggleBlur();
+        }
+      });
+    </script>
+  </body>
+</html>
